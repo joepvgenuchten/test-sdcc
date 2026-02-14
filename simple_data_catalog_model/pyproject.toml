@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "simple_data_catalog_model"
+version = "0.0.10"
+authors = [
+  { name="Joep van Genuchten", email="joep@uuidea.eu" },
+]
+description = "linkml model for simple_data_catalog"
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent"
+]
+
+dependencies    = [
+  "pydantic>=2.10.6",
+  "pyshacl",
+  "rdflib",
+  "poetry"
+]
+
+[dependency-groups]
+dev = [
+  "linkml>=1.8.7",
+  "pydantic>=2.10.6",
+  "pyld>=2.0.4",
+  "rdflib>=7.1.3",
+  "pytest-cov~=6.0.0",
+  "poethepoet~=0.32.1",
+  "pytest~=8.3.4",
+  "ruff~=0.9.3",
+  "pyright~=1.1",
+  "rich",
+  "linkml-asciidoc-generator @ git+https://github.com/Netbeheer-Nederland/linkml-asciidoc-generator.git@v0.4.0"
+]
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/simple_data_catalog_model"]
+
+
+[project.urls]
+Homepage = "https://github.com/uuidea/simple_data_catalog"
+Issues = "https://github.com/uuidea/simple_data_catalog/issues"
+

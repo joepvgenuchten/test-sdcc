@@ -1,0 +1,15 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ex: <http://www.example.com/> .
+@prefix ns1: <https://www.uuidea.eu/profiles/policy/:> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+ex:fair-f1 a odrl:Policy ;
+    dcterms:description "Obligation for F1 - (meta)data are assigned a globally unique and eternally persistent identifier." ;
+    odrl:obligation [ a odrl:Duty ;
+            dcterms:description "Obligation to assign globally unique and persistent identifiers to (meta)data." ;
+            odrl:action "manage" ;
+            odrl:assignee "Data Provider" ] .
+
+[] a ns1:Container ;
+    ns1:policies ex:fair-f1 .
+

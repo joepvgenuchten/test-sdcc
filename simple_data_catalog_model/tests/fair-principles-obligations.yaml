@@ -1,0 +1,45 @@
+policies:
+  - uid: ex:open-information-policy
+    description: |
+      Open Information policy for the project.  
+      It ensures that data is Findable, Accessible, Interoperable, and Reusable (FAIR).
+    permission:
+      - uid: open-info-access
+        description: |
+          Allows any consumer to access the data.
+        action: access
+        assignee: 
+        - Data Consumer
+    obligation:
+      # Duty: register the data in a catalog
+      - uid: register-in-catalog
+        description: |
+          The publisher must register the data in the project catalog so it is findable.
+        action: register
+        assignee:
+          - Data Provider
+     # Duty: provide an open licence
+      - uid: provide-license
+        description: |
+          The publisher must provide an open‑source or Creative‑Commons licence
+          describing how the data may be used.
+        action: provide
+        assignee:
+          - Data Provider
+     # Duty: provide a rights statement
+      - uid: provide-rights-statement
+        description: |
+          The publisher must provide a rights statement (e.g., from rightsstatements.org)
+          indicating any intellectual‑property or copy rights.
+        action: provide
+        assignee:
+          - Data Provider
+     # Duty: make the data accessible via an appropriate protocol
+      - uid: make-accessible
+        description: |
+          The provider must make the data available through an appropriate
+          protocol so that consumers can retrieve it without restriction.
+        action: make_available
+        assignee:
+          - Data Provider
+  

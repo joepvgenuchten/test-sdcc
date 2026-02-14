@@ -1,0 +1,126 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dqv: <http://www.w3.org/ns/dqv#> .
+@prefix ex: <http://www.example.com#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix sdcdc: <https://www.uuidea.eu/profiles/data-catalog/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:fhwiehduwke a dcat:Catalog ;
+    dcterms:description "a test data catalog created to validate the schema" ;
+    dcterms:publisher [ a foaf:Agent ;
+            foaf:name "my name" ] ;
+    dcterms:title "test data catalog" ;
+    dcat:dataset ex:herrcgre .
+
+ex:make-accessible a odrl:Duty ;
+    dcterms:description """The provider must make the data available through an appropriate
+protocol so that consumers can retrieve it without restriction.
+""" ;
+    odrl:action "make_available" ;
+    odrl:assignee "Data Provider" .
+
+ex:open-info-access a odrl:Permission ;
+    dcterms:description """Allows any consumer to access the data.
+""" ;
+    odrl:action "access" ;
+    odrl:assignee "Data Consumer" .
+
+ex:provide-license a odrl:Duty ;
+    dcterms:description """The publisher must provide an open‑source or Creative‑Commons licence
+describing how the data may be used.
+""" ;
+    odrl:action "provide" ;
+    odrl:assignee "Data Provider" .
+
+ex:provide-rights-statement a odrl:Duty ;
+    dcterms:description """The publisher must provide a rights statement (e.g., from rightsstatements.org)
+indicating any intellectual‑property or copy rights.
+""" ;
+    odrl:action "provide" ;
+    odrl:assignee "Data Provider" .
+
+ex:register-in-catalog a odrl:Duty ;
+    dcterms:description """The publisher must register the data in the project catalog so it is findable.
+""" ;
+    odrl:action "register" ;
+    odrl:assignee "Data Provider" .
+
+ex:sfasdggfvrln a dqv:QualityMeasurement ;
+    dqv:computedOn ex:herrcgre ;
+    dqv:isMeasurementOf ex:fkrhkqewjewrc ;
+    dqv:value "0.9"^^xsd:float ;
+    prov:generatedAtTime "2025-04-22"^^xsd:date .
+
+ex:abc a skos:Concept ;
+    skos:altLabel "juice" ;
+    skos:definition "energy is energy" ;
+    skos:prefLabel "energy" .
+
+ex:abcde a dcat:DatasetSeries ;
+    dcterms:publisher [ a foaf:Agent ;
+            foaf:name "My name" ] ;
+    dcterms:title "all the datasets by this publisher" .
+
+ex:bcd a skos:Concept ;
+    skos:altLabel "practice" ;
+    skos:definition "test is just for testing" ;
+    skos:prefLabel "test" .
+
+ex:def a skos:Concept ;
+    skos:altLabel "information (leave a comment ;-))" ;
+    skos:definition "data is plural of datum" ;
+    skos:prefLabel "data" .
+
+ex:fkrhkqewjewrc a dqv:Metric ;
+    skos:definition "an example of a data quality metric" ;
+    skos:prefLabel "example metric" ;
+    dqv:expectedDataType xsd:float ;
+    dqv:inDimension "Completeness" .
+
+ex:open-information-policy a odrl:Policy ;
+    dcterms:description """Open Information policy for the project.  
+It ensures that data is Findable, Accessible, Interoperable, and Reusable (FAIR).
+""" ;
+    dcterms:title "open information policy" ;
+    odrl:obligation ex:make-accessible,
+        ex:provide-license,
+        ex:provide-rights-statement,
+        ex:register-in-catalog ;
+    odrl:permission ex:open-info-access .
+
+ex:herrcgre a dcat:Dataset ;
+    dcterms:license [ a dcterms:LicenseDocument ;
+            dcterms:title "cc-by 4.0" ] ;
+    dcterms:publisher [ a foaf:Agent ;
+            foaf:name "my name" ] ;
+    dcterms:title "test dataset" ;
+    vcard:contactPoint [ a vcard:Kind ;
+            vcard:hasEmail "my.name@example.com" ] ;
+    adms:status "draft" ;
+    dcat:inSeries ex:abcde ;
+    dcat:theme ex:abc,
+        ex:bcd,
+        ex:def ;
+    dcat:version [ a dcterms:PeriodOfTime ;
+            time:hasBeginning "2025-01-01"^^xsd:date ;
+            time:hasEnd "2025-12-31"^^xsd:date ] ;
+    odrl:hasPolicy ex:open-information-policy .
+
+[] a sdcdc:Container ;
+    sdcdc:concepts ex:abc,
+        ex:bcd,
+        ex:def ;
+    sdcdc:dataCatalog ex:fhwiehduwke ;
+    sdcdc:datasets ex:herrcgre ;
+    sdcdc:metrics ex:fkrhkqewjewrc ;
+    sdcdc:policies ex:open-information-policy ;
+    sdcdc:qualityMeasurements ex:sfasdggfvrln ;
+    sdcdc:series ex:abcde .
+

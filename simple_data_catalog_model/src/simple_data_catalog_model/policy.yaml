@@ -1,0 +1,242 @@
+id: https://www.uuidea.eu/profiles/policy
+name: data_catalog_model
+prefixes:
+  linkml: https://w3id.org/linkml/
+  sdcp: https://w3id.org/simpledatacatalog/policy/
+  dcat: http://www.w3.org/ns/dcat#
+  odrl:  http://www.w3.org/ns/odrl/2/
+  prov:  http://www.w3.org/ns/prov#
+  xsd:  http://www.w3.org/2001/XMLSchema#
+  skos:  http://www.w3.org/2004/02/skos/core#
+  dcterms:  http://purl.org/dc/terms/
+  foaf: http://xmlns.com/foaf/0.1/
+  vcard: http://www.w3.org/2006/vcard/ns#
+  time:    http://www.w3.org/2006/time#
+  dqv:   http://www.w3.org/ns/dqv#
+  ex: http://www.example.com/
+  adms:  http://www.w3.org/ns/adms#
+imports:
+  - linkml:types
+
+# default_prefix: sdc
+
+################################
+# Classes (entities)   #
+################################
+classes:
+  Any:
+    class_uri: linkml:Any
+
+  # Policy – now inherits from the default LinkML base
+  Policy:
+    class_uri: odrl:Policy
+    description:
+      '''
+      The Policy class has the following properties:
+
+          A Policy MUST have one uid property value (of type IRI [rfc3987]) to identify the Policy.
+          A Policy MUST have at least one permission, prohibition, or obligation property values of type Rule. (See the Permission, Prohibition, and Obligation sections for more details.)
+          A Policy MAY have none, one, or many profile property values (of type IRI [rfc3987]) to identify the ODRL Profile that this Policy conforms to. (See the ODRL Profiles section for more details.)
+          A Policy MAY have none, one, or many inheritFrom property values (of type IRI [rfc3987]) to identify the parent Policy from which this child Policy inherits from. (See the ODRL Inheritance section for more details.)
+          A Policy MAY have none or one conflict property values (of type ConflictTerm) for Conflict Strategy Preferences indicating how to handle Policy conflicts.(See the Policy Conflict Strategy section for more details.)
+
+      An ODRL Policy MAY also declare properties which are shared and common to all its Rules. Specifically; action properties, sub-properties of relation (such as target), and sub-properties of function (such as assigner and assignee). See section Compact Policy for validation requirements on these shared properties.
+
+      An ODRL Policy must either:
+
+          Only use terms defined in the ODRL Core Vocabulary [odrl-vocab], or
+          Use an ODRL Profile that declares the supported vocabulary used by expressions in the Policy.
+
+      In the latter case, the profile property MUST be used to indicate the IRIs of the ODRL Profile(s). See the ODRL Profiles section for more details on mechanisms to define ODRL Profiles and conformance requirements. (The Examples in this document will use ODRL Profile identifiers for illustrative purposes only.)
+
+       An ODRL Policy MAY be subclassed to more precisely describe the context of use of the Policy that MAY include additional constraints that ODRL processors MUST understand. Additional Policy subclasses MAY be documented in the ODRL Common Vocabulary [odrl-vocab] or in ODRL Profiles. A Policy class MUST be disjoint will all Policy subclasses (except for Set).
+      '''
+    attributes:
+      - uid:
+          identifier: true
+          description: "Unique identifier for the policy or rule"
+          slot_uri: dcterms:identifier
+          range: string
+          required: true
+      - description:
+          description: "Description of the policy or rule"
+          slot_uri: dcterms:description
+          range: string
+          required: false
+      - obligation:
+          description: "Obligations in the policy"
+          slot_uri: odrl:obligation
+          range: Duty
+          multivalued: true
+          inlined_as_list: true
+          required: false
+      - permission:
+          description: "Permissions in the policy"
+          slot_uri: odrl:permission
+          range: Permission
+          multivalued: true
+          required: false
+          inlined_as_list: true
+      - prohibition:
+          description: "Prohibitions in the policy"
+          slot_uri: odrl:prohibition
+          range: Prohibition
+          multivalued: true
+          inlined_as_list: true
+          required: false
+
+  Set:
+    is_a: Policy
+    class_uri: odrl:Set
+    description: "ODRL Set policy, the default subclass of Policy, representing any combination of Rules"
+
+  Rule:
+    class_uri: odrl:Rule
+    description:
+      '''The Rule class is the parent of the Permission, Prohibition, and Duty classes. The Rule class represents the common characteristics of these three classes. A Rule class MUST be disjoint with all other Rule subclasses.
+
+      The Rule class has the following properties:
+
+          A Rule MUST have one action property value of type Action.
+          A Rule MAY have none or one relation sub-property values of type Asset.
+          A Rule MAY have none, one or many function sub-property values of type Party.
+          A Rule MAY have none, one or many failure sub-property values of type Rule.
+          A Rule MAY have none, one or many constraint property values of type Constraint/LogicalConstraint.
+          A Rule MAY have none or one uid property values (of type IRI [rfc3987]) to identify the Rule so it MAY be referenced by other Rules.
+
+      Note: The above property cardinalities reflect the normative ODRL Information Model. In some cases, repeat occurrences of some properties are also supported (as described in Policy Rule Composition and Compact Policy) but the normative atomic Policy is consistent with the above property cardinalities.
+
+        Explicit sub-properties of the abstract relation, relation and failure properties must be used, the choice depending on the subclass of Rule in question.'''
+    attributes:
+      - uid:
+          identifier: true
+          description: "Unique identifier for the duty or rule"
+          slot_uri: dcterms:identifier
+          range: string
+          required: false
+      - description:
+          description: "Description of the rule"
+          slot_uri: dcterms:description
+          range: string
+          required: false
+      - action:
+          description: "The action to be performed"
+          slot_uri: odrl:action
+          range: string
+          required: true
+
+      - assignee:
+          description: 
+            To express the recipient Party of the Rule. In this 
+            context it is recommended to specify the role of the 
+            party responsible (see also https://docs.internationaldataspaces.org/ids-knowledgebase/idsa-rulebook/idsa-rulebook/2.-guiding-principles/2.5-role_models#core-roles)
+          slot_uri: odrl:assignee
+          multivalued: true
+          required: false
+          range: PartyCollection
+
+  Permission:
+    is_a: Rule
+    class_uri: odrl:Permission
+    description: Grants the assignee the right to perform an action.
+    attributes:
+      - duty:
+          description: "Duties attached to permissions"
+          slot_uri: odrl:duty
+          range: Duty
+          multivalued: true
+          required: false
+
+  Prohibition:
+    is_a: Rule
+    class_uri: odrl:Prohibition
+    description: Denies the assignee the right to perform an action.
+    attributes:
+      - remedy:
+          description: "Remedies for prohibitions"
+          slot_uri: odrl:remedy
+          range: Duty
+          multivalued: true
+          required: false
+
+  Duty:
+    class_uri: odrl:Duty
+    is_a: Rule
+    description: An obligation attached to a permission or prohibition.
+    attributes:
+      - consequence: 
+          description: 
+            The consequence property (a sub-property of 
+            the failure property) is utilised to express 
+            the repercussions of not fulfilling an 
+            agreed Policy obligation or duty for a 
+            Permission. If either of these fails to be 
+            fulfilled, then this will result in the 
+            consequence Duties also becoming new 
+            requirements, meaning that the original 
+            obligation or duty, as well as the 
+            consequence Duties MUST all be fulfilled.
+          slot_uri: odrl:consequence
+          required: false
+          multivalued: true
+          range: Duty  
+
+      # - description:
+      #     description: "Description of the duty"
+      #     slot_uri: dcterms:description
+      #     range: string
+      #     required: false
+      # - action:
+      #     description: "The action to be performed"
+      #     slot_uri: odrl:action
+      #     range: string
+      #     required: true
+
+  Container:
+    tree_root: true
+    attributes:
+      policies:
+        multivalued: true
+        inlined_as_list: true
+        range: Policy
+        required: false
+
+enums:
+  PartyCollection:
+    description:
+      a Party that is a single entity representing a 
+      set of member entities. This indicates that all 
+      the members of the set will undertake the same 
+      functional role in the Rule. 
+
+      For the purpse of the simple_data_catalog, an enumerated list
+      representing the IDS-RAM roles is used.
+    permissible_values:
+      Data Consumer:
+        description:
+          The term data user means a natural or legal person who 
+          has lawful access to certain personal or non-personal 
+          data and has the right, including under Regulation (EU) 
+          2016/679 in the case of personal data, to use that data 
+          for commercial or non-commercial purposes.
+      Data Provider:
+        description:
+          The term data holder means a legal person, including 
+          public sector bodies and international organizations, 
+          or a natural person who is not a data subject with 
+          respect to the specific data in question, who has 
+          the right to grant access to or to share certain 
+          personal data or non-personal data in accordance 
+          with applicable Union or national law.
+      Service Provider:
+        description:
+          In a data space multiple service providers can offer 
+          optional capabilities to enable data sharing and data 
+          transactions. Some services may be considered as 
+          essential, depending on the data space governance 
+          framework. Those may be services required to operate 
+          a data space, to intermediate in data transactions, 
+          or support the value creation process in a data space. 
+          Fundamentally, all such service providers are considered 
+          to be a participant in a data space and therefore bound 
+          to the agreed policies and rules of a given data space.

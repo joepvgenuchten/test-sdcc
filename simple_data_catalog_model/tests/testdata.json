@@ -1,0 +1,93 @@
+{
+  "dataCatalog": {
+    "identifier": "fhwiehduwke",
+    "title": "test data catalog",
+    "description": "a test data catalog created to validate the schema",
+    "publisher": {
+      "name": "my name"
+    },
+    "dataset": [
+      "ex:herrcgre"
+    ]
+  },
+  "datasets": [
+    {
+      "identifier": "ex:herrcgre",
+      "title": "test dataset",
+      "publisher": {
+        "name": "my name"
+      },
+      "contactPoint": {
+        "hasEmail": "my.name@example.com"
+      },
+      "license": {
+        "title": "cc-by 4.0"
+      },
+      "status": "draft",
+      "theme": [
+        {
+          "identifier": "ex:abc"
+        },
+        {
+          "identifier": "ex:bcd"
+        },
+        {
+          "identifier": "ex:def"
+        }
+      ],
+      "temporal": {
+        "hasBeginning": "2025-01-01",
+        "hasEnd": "2025-12-31"
+      },
+      "inSeries": "ex:abcde"
+    }
+  ],
+  "concepts": [
+    {
+      "identifier": "ex:abc",
+      "definition": "energy is energy",
+      "prefLabel": "energy",
+      "altLabel": "juice"
+    },
+    {
+      "identifier": "ex:bcd",
+      "definition": "test is just for testing",
+      "prefLabel": "test",
+      "altLabel": "practice"
+    },
+    {
+      "identifier": "ex:def",
+      "definition": "data is plural of datum",
+      "prefLabel": "data",
+      "altLabel": "information (leave a comment ;-))"
+    }
+  ],
+  "series": [
+    {
+      "identifier": "ex:abcde",
+      "title": "all the datasets by this publisher",
+      "publisher": {
+        "name": "My name"
+      }
+    }
+  ],
+  "metrics": [
+    {
+      "identifier": "ex:fkrhkqewjewrc",
+      "definition": "an example of a data quality metric",
+      "prefLabel": "example metric",
+      "expectedDataType": "xsd:float",
+      "inDimension": "Completeness"
+    }
+  ],
+  "qualityMeasurements": [
+    {
+      "identifier": "ex:sfasdggfvrln",
+      "computedOn": "ex:herrcgre",
+      "isMeasurementOf": "ex:fkrhkqewjewrc",
+      "value": 0.9,
+      "generatedAtTime": "2025-04-22"
+    }
+  ],
+  "@type": "Container"
+}

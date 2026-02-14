@@ -1,0 +1,58 @@
+name: Build and deploy documentation site
+on:
+  workflow_dispatch:
+  push:
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Configure Pages
+        uses: actions/configure-pages@v3
+
+      - name: Setup Python 3.12.7
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.12.7"
+      - name: Install uv 0.7.8
+        run: curl -LsSf https://astral.sh/uv/0.7.8/install.sh | sh
+      - name: Install Python project dependencies
+        run: uv sync --no-dev --no-install-project --locked
+      - name: Generate asciidoc
+        run: |
+            cp -r "documentation" "artifacts"
+                mkdir -p "artifacts/documentation/modules/schema"
+                uv run python -m linkml_asciidoc_generator.main \
+                    "src/simple_data_catalog_model/data-catalog.yaml" \
+                    "artifacts/documentation/modules/schema" \
+                    --yes-relations-diagrams
+      #- name: Install Just 1.38.0
+      #run: pip install rust-just==1.38.0
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.20.0'
+      - name: Install Antora with the Antora Lunr Extension
+        run: npm i antora @antora/lunr-extension @sntke/antora-mermaid-extension asciidoctor-kroki @djencks/asciidoctor-mathjax
+      - name: Install Antora dependencies
+        run: npm i      
+      - name: Generate site
+        run: npx antora antora-playbook.yml
+      - name: Upload artifacts
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: artifacts
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

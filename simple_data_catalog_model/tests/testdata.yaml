@@ -1,0 +1,111 @@
+dataCatalog:
+  identifier: ex:fhwiehduwke
+  description: a test data catalog created to validate the schema
+  title: test data catalog
+  publisher:
+    name: my name
+  dataset:
+    - ex:herrcgre
+
+datasets:
+  - identifier: ex:herrcgre
+    title: test dataset
+    publisher:
+      name : my name
+    contactPoint: 
+      hasEmail: my.name@example.com
+    status: draft
+    theme:
+      - ex:abc
+      - ex:bcd 
+      - ex:def
+    license:
+      title: "cc-by 4.0"
+    temporal:
+      hasBeginning: 2025-01-01
+      hasEnd: 2025-12-31  
+    inSeries: ex:abcde
+    hasPolicy: ex:open-information-policy
+
+concepts:
+  - prefLabel: energy
+    identifier: ex:abc
+    definition: energy is energy
+    altLabel: juice
+  - prefLabel: test
+    identifier: ex:bcd
+    definition: test is just for testing
+    altLabel: practice  
+  - prefLabel: data
+    identifier: ex:def
+    definition: data is plural of datum
+    altLabel: information (leave a comment ;-))  
+
+series:
+  - identifier: ex:abcde
+    title: all the datasets by this publisher
+    publisher:
+      name: My name
+
+metrics:
+  - identifier: ex:fkrhkqewjewrc
+    prefLabel: example metric
+    definition: an example of a data quality metric
+    expectedDataType: xsd:float
+    inDimension: Completeness
+
+
+qualityMeasurements:
+  - identifier: ex:sfasdggfvrln
+    computedOn: ex:herrcgre
+    isMeasurementOf: ex:fkrhkqewjewrc
+    generatedAtTime: 2025-04-22
+    value: 0.9
+
+policies:
+  - uid: plcy:open-information-policy
+    title: open information policy
+    description: |
+      Open Information policy for the project.  
+      It ensures that data is Findable, Accessible, Interoperable, and Reusable (FAIR).
+    permission:
+      - uid: ex:open-info-access
+        description: |
+          Allows any consumer to access the data.
+        action: access
+        assignee: 
+        - Data Consumer
+    obligation:
+      # Duty: register the data in a catalog
+      - uid: plcy:register-in-catalog
+        description: |
+          The publisher must register the data in the project catalog so it is findable.
+        action: register
+        assignee:
+          - Data Provider
+     # Duty: provide an open licence
+      - uid: plcy:provide-license
+        description: |
+          The publisher must provide an open‑source or Creative‑Commons licence
+          describing how the data may be used.
+        action: provide
+        assignee:
+          - Data Provider
+     # Duty: provide a rights statement
+      - uid: plcy:provide-rights-statement
+        description: |
+          The publisher must provide a rights statement (e.g., from rightsstatements.org)
+          indicating any intellectual‑property or copy rights.
+        action: provide
+        assignee:
+          - Data Provider
+     # Duty: make the data accessible via an appropriate protocol
+      - uid: plcy:make-accessible
+        description: |
+          The provider must make the data available through an appropriate
+          protocol so that consumers can retrieve it without restriction.
+        action: make_available
+        assignee:
+          - Data Provider
+  
+
