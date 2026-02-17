@@ -47,7 +47,10 @@ jobs:
       - name: Check if fork exists
         id: check-fork
         run: |
-          FORK_EXISTS=$(gh repo list --limit 100 --json nameWithOwner --jq '.[] | select(.nameWithOwner == "${{ github.repository_owner }}/${{ github.event.inputs.target_repo }}" | split("/")[1]) | .nameWithOwner' || echo "")
+          TARGET_REPO="${{ github.event.inputs.target_repo }}"
+          REPO_NAME=$(echo $TARGET_REPO | cut -d'/' -f2)
+          FORK_NAME="${{ github.repository_owner }}/$REPO_NAME"
+          FORK_EXISTS=$(gh repo list --limit 100 --json nameWithOwner --jq ".[] | select(.nameWithOwner == \"$FORK_NAME\") | .nameWithOwner" || echo "")
           if [ -n "$FORK_EXISTS" ]; then
             echo "FORK_EXISTS=true" >> $GITHUB_OUTPUT
             echo "FORK_NAME=$FORK_EXISTS" >> $GITHUB_OUTPUT
@@ -65,7 +68,9 @@ jobs:
           gh repo fork ${{ github.event.inputs.target_repo }} --default-branch-only --remote=false
           # Wait for fork to be ready
           sleep 5
-          FORK_NAME="${{ github.repository_owner }}/${{ github.event.inputs.target_repo }}"
+          TARGET_REPO="${{ github.event.inputs.target_repo }}"
+          REPO_NAME=$(echo $TARGET_REPO | cut -d'/' -f2)
+          FORK_NAME="${{ github.repository_owner }}/$REPO_NAME"
           echo "FORK_NAME=$FORK_NAME" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.CATALOG_SUBMISSION_TOKEN }}
