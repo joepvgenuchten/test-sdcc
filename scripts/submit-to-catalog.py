@@ -185,13 +185,14 @@ def append_dataset_to_catalog_with_formatting(target_path: str, new_dataset: dic
     for i, line in enumerate(new_dataset_yaml.strip().split('\n')):
         if line.strip():
             if i == 0:
+                # First line: add list marker prefix
                 indented_lines.append('  - ' + line)
             else:
-                # Get the original indentation
-                original_indent = len(line) - len(line.lstrip())
-                # Add 4 spaces for the list item wrapper (2 for the -, 2 for nesting)
-                new_indent = original_indent + 4
-                indented_lines.append(' ' * new_indent + line.lstrip())
+                # Other lines: preserve relative indentation and add 4 spaces total indent
+                # yaml.dump uses 2-space indents for nested content
+                current_indent = len(line) - len(line.lstrip())
+                target_indent = current_indent + 4
+                indented_lines.append(' ' * target_indent + line.lstrip())
     new_dataset_block = '\n'.join(indented_lines)
     
     lines = content.split('\n')
@@ -297,17 +298,29 @@ def main():
     if 'prefixes' in source_data:
         source_defined_prefixes = source_data['prefixes']
     
-    # Merge to get full source prefixes
+    # Also load source's prefix.yaml file if it exists
+    source_prefix_file = Path(args.source).parent / 'prefix.yaml'
+    if source_prefix_file.exists():
+        with open(source_prefix_file, 'r') as f:
+            prefix_file_data = yaml.safe_load(f)
+            if prefix_file_data and 'prefixes' in prefix_file_data:
+                for prefix, uri in prefix_file_data['prefixes'].items():
+                    if prefix not in source_defined_prefixes:
+                        source_defined_prefixes[prefix] = uri
+    
+    # Merge to get full source prefixes - include all defined prefixes from source
     complete_source_prefixes = {}
+    for prefix in source_defined_prefixes:
+        complete_source_prefixes[prefix] = source_defined_prefixes[prefix]
+    
+    # Also add prefixes that are used but not yet in complete_source_prefixes
     for prefix in source_prefixes_used:
-        if prefix in source_defined_prefixes:
-            complete_source_prefixes[prefix] = source_defined_prefixes[prefix]
-        elif prefix in default_prefixes:
-            complete_source_prefixes[prefix] = default_prefixes[prefix]
-        else:
-            # Unknown prefix - we'll flag this
-            complete_source_prefixes[prefix] = None
-            print(f"WARNING: Unknown prefix '{prefix}' - no URI definition found", file=sys.stderr)
+        if prefix not in complete_source_prefixes:
+            if prefix in default_prefixes:
+                complete_source_prefixes[prefix] = default_prefixes[prefix]
+            else:
+                complete_source_prefixes[prefix] = None
+                print(f"WARNING: Unknown prefix '{prefix}' - no URI definition found", file=sys.stderr)
     
     # Merge prefixes
     merged_prefixes, new_prefixes = merge_prefixes(complete_source_prefixes, target_prefixes)
