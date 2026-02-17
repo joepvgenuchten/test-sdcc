@@ -41,8 +41,6 @@ jobs:
       - name: Authenticate with GitHub CLI
         run: |
           echo "${{ secrets.CATALOG_SUBMISSION_TOKEN }}" | gh auth login --with-token
-        env:
-          GH_TOKEN: ${{ secrets.CATALOG_SUBMISSION_TOKEN }}
       
       - name: Check if fork exists
         id: check-fork
