@@ -12,7 +12,6 @@ import yaml
 import re
 import sys
 from pathlib import Path
-from datetime import datetime
 from typing import Dict, List, Set, Tuple, Any
 
 
@@ -79,7 +78,7 @@ def transform_datacatalog_to_dataset(datacatalog: dict, repo_name: str, repo_url
     """
     Transform a dataCatalog entry into a Dataset entry.
     
-    The dataCatalog becomes a Dataset, with additional metadata about the source repository.
+    The dataCatalog becomes a Dataset. The source repository is added as a distribution.
     """
     dataset = {
         'identifier': datacatalog.get('identifier'),
@@ -90,28 +89,28 @@ def transform_datacatalog_to_dataset(datacatalog: dict, repo_name: str, repo_url
     # Copy over other fields from dataCatalog
     optional_fields = [
         'publisher', 'contactPoint', 'license', 'theme', 'temporal',
-        'wasDerivedFrom', 'hasPolicy', 'issued', 'modified', 'version', 'status'
+        'wasDerivedFrom', 'hasPolicy', 'issued', 'modified', 'version', 'status',
+        'distribution'
     ]
     
     for field in optional_fields:
         if field in datacatalog and datacatalog[field] is not None:
             dataset[field] = datacatalog[field]
     
-    # Add provenance information
-    if 'wasDerivedFrom' not in dataset:
-        dataset['wasDerivedFrom'] = []
+    # Add source repository as a distribution (not wasDerivedFrom)
+    if 'distribution' not in dataset:
+        dataset['distribution'] = []
     
-    # Add source repository as provenance
-    if isinstance(dataset['wasDerivedFrom'], list):
-        dataset['wasDerivedFrom'].append({
-            'identifier': f'{repo_name.replace("/", "-")}-source',
-            'title': f'Source repository: {repo_name}',
-            'description': f'This dataset was automatically submitted from {repo_url}'
-        })
+    # Create distribution entry for the source repository
+    source_distribution = {
+        'identifier': f'{repo_name.replace("/", "-")}-source',
+        'title': f'Source repository: {repo_name}',
+        'description': f'This dataset was automatically submitted from {repo_url}',
+        'accessURL': repo_url
+    }
     
-    # Add submission metadata
-    dataset['submittedAt'] = datetime.now().isoformat()
-    dataset['submittedFrom'] = repo_url
+    if isinstance(dataset['distribution'], list):
+        dataset['distribution'].append(source_distribution)
     
     return dataset
 
@@ -157,6 +156,82 @@ def append_dataset_to_catalog(target_catalog: dict, new_dataset: dict) -> dict:
     
     target_catalog['datasets'].append(new_dataset)
     return target_catalog
+
+
+def append_dataset_to_catalog_with_formatting(target_path: str, new_dataset: dict) -> str:
+    """Append a new dataset to the target catalog by inserting it at the correct position in the YAML file."""
+    with open(target_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    data = yaml.safe_load(content)
+    
+    if 'datasets' not in data:
+        data['datasets'] = []
+    
+    existing_ids = {ds.get('identifier') for ds in data['datasets'] if isinstance(ds, dict)}
+    
+    dataset_id = new_dataset.get('identifier')
+    if dataset_id in existing_ids:
+        print(f"WARNING: Dataset with identifier '{dataset_id}' already exists in catalog", file=sys.stderr)
+        base_id = dataset_id
+        counter = 1
+        while f"{base_id}-{counter}" in existing_ids:
+            counter += 1
+        new_dataset['identifier'] = f"{base_id}-{counter}"
+        print(f"  Renamed to: {new_dataset['identifier']}", file=sys.stderr)
+    
+    new_dataset_yaml = yaml.dump(new_dataset, default_flow_style=False, allow_unicode=True, sort_keys=False)
+    indented_lines = []
+    for i, line in enumerate(new_dataset_yaml.strip().split('\n')):
+        if line.strip():
+            if i == 0:
+                indented_lines.append('  - ' + line)
+            else:
+                # Get the original indentation
+                original_indent = len(line) - len(line.lstrip())
+                # Add 4 spaces for the list item wrapper (2 for the -, 2 for nesting)
+                new_indent = original_indent + 4
+                indented_lines.append(' ' * new_indent + line.lstrip())
+    new_dataset_block = '\n'.join(indented_lines)
+    
+    lines = content.split('\n')
+    new_lines = []
+    in_datasets = False
+    datasets_indent = 0
+    inserted = False
+    
+    for i, line in enumerate(lines):
+        if line.strip().startswith('datasets:') and not in_datasets:
+            in_datasets = True
+            new_lines.append(line)
+            if i + 1 < len(lines) and lines[i + 1].strip().startswith('-'):
+                datasets_indent = len(lines[i + 1]) - len(lines[i + 1].lstrip())
+            continue
+        elif in_datasets:
+            if line.strip() and not line.startswith(' ' * (datasets_indent - 1)) and not line.strip().startswith('#'):
+                if not inserted:
+                    new_lines.append(new_dataset_block)
+                    inserted = True
+                in_datasets = False
+            elif line.strip().startswith(('concepts:', 'series:', 'metrics:', 'qualityMeasurements:', 'policies:', 'dataCatalog:', 'dataServices:')):
+                if not inserted:
+                    new_lines.append(new_dataset_block)
+                    inserted = True
+                in_datasets = False
+                new_lines.append(line)
+                continue
+        
+        new_lines.append(line)
+    
+    if not inserted:
+        new_lines.append(new_dataset_block)
+    
+    new_content = '\n'.join(new_lines)
+    
+    with open(target_path, 'w', encoding='utf-8') as f:
+        f.write(new_content)
+    
+    return new_dataset.get('identifier', '')
 
 
 def generate_default_prefixes() -> Dict[str, str]:
@@ -257,7 +332,7 @@ def main():
     save_yaml(args.target_prefixes, prefix_data)
     print(f"Updated {args.target_prefixes}")
     
-    # Load target catalog
+    # Load target catalog to check existing datasets
     print(f"Loading target catalog from {args.target}")
     target_catalog = load_yaml(args.target)
     
@@ -271,11 +346,8 @@ def main():
     
     print(f"Created dataset: {new_dataset['identifier']}")
     
-    # Append to target catalog
-    target_catalog = append_dataset_to_catalog(target_catalog, new_dataset)
-    
-    # Save updated target catalog
-    save_yaml(args.target, target_catalog)
+    # Append to target catalog while preserving original formatting
+    dataset_id = append_dataset_to_catalog_with_formatting(args.target, new_dataset)
     print(f"Updated {args.target}")
     
     print("\nSubmission preparation complete!")
